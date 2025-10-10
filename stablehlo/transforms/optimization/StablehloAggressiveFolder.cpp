@@ -1550,16 +1550,17 @@ struct FoldTransposeOpPattern : public FoldOpRewritePattern<TransposeOp> {
           op, "expected constant integer or float operand");
 
     DenseElementsAttr resAttr;
-    if (auto splat = dyn_cast<SplatElementsAttr>(els))
+    if (auto splat = dyn_cast<SplatElementsAttr>(els)) {
       resAttr =
           DenseElementsAttr::get(resultType, splat.getSplatValue<Attribute>());
-    else if (auto data = els.tryGetValues<APInt>())
+    } else if (auto data = els.tryGetValues<APInt>()) {
       resAttr = transposeType(op, *data);
-    else if (auto data = els.tryGetValues<APFloat>())
+    } else if (auto data = els.tryGetValues<APFloat>()) {
       resAttr = transposeType(op, *data);
-    else
+    } else {
       return rewriter.notifyMatchFailure(op.getLoc(),
                                          "unsupported element type");
+    }
 
     rewriter.replaceOpWithNewOp<ConstantOp>(op, resAttr);
     return success();
